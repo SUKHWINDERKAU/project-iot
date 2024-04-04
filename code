@@ -1,1 +1,183 @@
 enter code here
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+LiquidCrystal_I2C lcd(32,16,2);
+#define NOTE_FS4 370
+#define NOTE_D4  294
+#define NOTE_B3  247
+
+// make an array to save Sev Seg pin configuration of numbers
+int digit_array[12][7] = {  { 1,1,1,1,1,1,0 },    // 0 abcdef
+                            { 0,1,1,0,0,0,0 },    // 1  bc
+                            { 1,1,0,1,1,0,1 },    // 2 ab de g
+                            { 1,1,1,1,0,0,1 },    // 3 abcd  g
+                            { 0,1,1,0,0,1,1 },    // 4  bc  fg
+                            { 1,0,1,1,0,1,1 },    // 5 a cd fg
+                            { 1,0,1,1,1,1,1 },    // 6 a cdefg
+                            { 1,1,1,0,0,0,0 },    // 7 abc    
+                            { 1,1,1,1,1,1,1 },    // 8 abcdefg
+                            { 1,1,1,0,0,1,1 },    // 9 abcd fg
+                            { 0,0,0,0,0,0,0 },};  // 
+
+//Arrays for walking toward right
+byte runRight1[8] = {
+  B01100,
+  B01100,
+  B00000,
+  B01110,
+  B11100,
+  B01100,
+  B11010,
+  B10011,
+};
+
+byte runRight2[8] = {
+  B01100,
+  B01100,
+  B00000,
+  B01100,
+  B01100,
+  B01100,
+  B01100,
+  B01110,
+};
+
+//Arrays for walking toward left
+byte runLeft1[8] = {
+  B00110,
+  B00110,
+  B00000,
+  B01110,
+  B00111,
+  B00110,
+  B01011,
+  B11001,
+};
+
+byte runLeft2[8] = {
+  B00110,
+  B00110,
+  B00000,
+  B00110,
+  B00110,
+  B00110,
+  B00110,
+  B01110,
+};
+
+//Array for standing still
+byte stand[8] = {
+  B01110,
+  B01110,
+  B00000,
+  B11111,
+  B11111,
+  B01110,
+  B01110,
+  B01110,
+};
+
+bool btnCtrl = 0; // Variable to run method when button is pressed
+int pushBtn = 3;
+
+void setup() 
+{ 
+  for(int i = 4; i <= 12; i++){
+    pinMode(i, OUTPUT);   
+  }
+  
+  // I2C LCD setup
+  lcd.begin(16,2);
+  lcd.init();
+  lcd.backlight();
+  
+  // Create custom character
+  lcd.createChar(0, runRight1);
+  lcd.createChar(1, runRight2);
+  lcd.createChar(2, runLeft1);
+  lcd.createChar(3, runLeft2);
+  lcd.createChar(4, stand);
+  
+  attachInterrupt(digitalPinToInterrupt(pushBtn),btnPress,RISING);
+}
+
+void loop() 
+{
+  if(btnCtrl == 1){ // When button is pressed
+    redLight(); // Red light for ~10 sec (w/ sound)
+    greenLight(); // Green light for ~30 sec (w/ sound)
+    btnCtrl=0;
+  }else{
+    digitalWrite(5, 1); // Red light if button not pressed
+    lcd.setCursor(0, 0);
+    lcd.write(byte(4)); // Display the custom character 0, standing
+  }
+}
+
+void btnPress(){
+  btnCtrl = 1;
+}
+
+void greenLight(){
+  digitalWrite(4, 1); // Green light on
+  
+  for(int i = 0; i <= 14; i++) {
+    tone(13, NOTE_FS4, 100); //Sound for passing
+    
+  	lcd.setCursor(i, 0);
+    lcd.write(byte(0));  // Display the custom character 0, run right first motion
+  	delay(400);
+    
+    tone(13, NOTE_D4, 100); //Sound for passing
+    
+    lcd.setCursor(i, 0); // Display the custom character 0, run right second motion
+  	lcd.write(byte(1));
+  	delay(600);
+  	lcd.clear();
+  }
+  
+  for(int i = 14; i >= 0; i--) {
+    if(i <= 9 && i > 0){ //Start count down while there's 9 seconds left
+      writeDigit(i);
+    }else{
+      writeDigit(10);
+    }
+    
+    tone(13, NOTE_FS4, 100); //Sound for passing
+    
+  	lcd.setCursor(i, 0);
+    lcd.write(byte(2));  // Display the custom character 0, run left first motion
+  	delay(400);
+    
+    tone(13, NOTE_D4, 100); //Sound for passing
+    
+    lcd.setCursor(i, 0);
+  	lcd.write(byte(3));  // Display the custom character 0, run left second motion
+  	delay(600);
+  	lcd.clear();
+  }
+  digitalWrite(4, 0); // Green light off
+}
+
+void writeDigit(int number) // Method to write digit on 7 segment display
+{
+  int pin = 6;
+  for (int j = 0; j < 7; j++){
+   digitalWrite(pin, digit_array[number][j]); 
+   pin++;
+  }
+}
+
+void redLight(){
+  digitalWrite(5, 1); // Red light on
+  
+  lcd.setCursor(0, 0);
+  lcd.write(byte(4)); // Display the custom character 0, standing
+  
+  for(int k = 0; k <= 9; k++){
+    tone(13, NOTE_B3, 200); //Sound for waiting
+    delay(1000);
+  }
+  lcd.clear();
+  digitalWrite(5, 0); // Red light off
+}
