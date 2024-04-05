@@ -1,0 +1,196 @@
+============================= ARDIONU 333
+  #include <Adafruit_NeoPixel.h>
+#include "Adafruit_LEDBackpack.h"
+
+
+#define PIN 0 // Pin number where NeoPixels are connected
+#define PIN1 1 // Pin number where NeoPixels are connected
+#define PIN2 2 // Pin number where NeoPixels are connected
+#define NUM_LEDS 12 // Number of NeoPixels in the ring
+
+#define PIN3 3 // Pin number where NeoPixels are connected
+#define PIN4 4 // Pin number where NeoPixels are connected
+#define PIN5 5 // Pin number where NeoPixels are connected
+int pushButton=6;
+int pushState=LOW;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip1 = Adafruit_NeoPixel(NUM_LEDS, PIN1, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_LEDS, PIN2, NEO_GRB + NEO_KHZ800);
+
+Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(NUM_LEDS, PIN3, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(NUM_LEDS, PIN4, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip5 = Adafruit_NeoPixel(NUM_LEDS, PIN5, NEO_GRB + NEO_KHZ800);
+
+Adafruit_7segment led_display1 = Adafruit_7segment();
+
+Adafruit_7segment led_display2 = Adafruit_7segment();
+
+Adafruit_7segment led_display3 = Adafruit_7segment();
+
+Adafruit_7segment led_display4 = Adafruit_7segment();
+
+
+// Define the colors
+#define RED_COLOR 0xFF0000
+#define YELLOW_COLOR 0xFFFF00
+#define GREEN_COLOR 0x00FF00
+
+void setup() {
+  strip.begin();
+  strip1.begin();
+  strip2.begin();
+  strip3.begin();
+  strip4.begin();
+  strip5.begin();
+  
+  strip.show();
+  strip1.show(); 
+  strip2.show(); 
+  strip3.show();
+  strip4.show();
+  strip5.show();
+  
+  led_display1.begin(112);
+  led_display2.begin(113);
+  led_display3.begin(112);
+  led_display4.begin(113);
+  pinMode(pushButton , INPUT);
+}
+
+void loop() {
+
+   led_display1.println("STOP");
+  led_display1.writeDisplay();
+  led_display2.println("GO");
+  led_display2.writeDisplay();
+  led_display3.println("STOP");
+  led_display3.writeDisplay();
+  led_display4.println("GO");
+  led_display4.writeDisplay();
+  delay(1000); // Wait for 1000 millisecond(s)
+  led_display1.clear();
+  led_display1.writeDisplay();
+  led_display2.clear();
+  led_display2.writeDisplay();
+  delay(1000); // Wait for 1000 millisecond(s)
+  led_display1.println("GO");
+  led_display1.writeDisplay();
+  led_display2.println("STOP");
+  led_display2.writeDisplay();
+  delay(1000); // Wait for 1000 millisecond(s)
+  // Red light
+  
+  pushState=digitalRead(pushButton);
+  
+  if(pushState=HIGH){
+     setColor2(GREEN_COLOR);
+  delay(7000); // 5 seconds
+
+  // Turn off green light
+  clearLights();
+  delay(1000); // 1 second delay after turning off green light
+
+  }
+  setColor(RED_COLOR);
+  led_display1.println("STOP");
+  led_display1.writeDisplay();
+  led_display2.println("GO");
+  led_display2.writeDisplay();
+  delay(7000); // 5 seconds
+
+  // Turn off red light
+  clearLights();
+  delay(1000); // 1 second delay after turning off red light
+
+  // Yellow light
+  setColor1(YELLOW_COLOR);
+  led_display1.println("WAIT");
+  led_display1.writeDisplay();
+  led_display2.println("WAIT");
+  led_display2.writeDisplay();
+  delay(3000); // 2 seconds
+
+  // Turn off yellow light
+  clearLights();
+  delay(1000); // 1 second delay after turning off yellow light
+
+  // Green light
+  setColor2(GREEN_COLOR);
+  led_display1.println("GO");
+  led_display1.writeDisplay();
+  led_display2.println("STOP");
+  led_display2.writeDisplay();
+  delay(7000); // 5 seconds
+
+  // Turn off green light
+  clearLights();
+  delay(1000); // 1 second delay after turning off green light
+
+ //------------------------------------------------------------------------------------
+  
+
+
+  
+ 
+
+}
+//-------------------RED-------------GREEN-------------------
+void setColor(uint32_t color) {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, color);
+  }
+  strip.show();
+
+   for (int i = 0; i < strip5.numPixels(); i++) {
+    strip5.setPixelColor(i, GREEN_COLOR);
+  }
+  strip5.show();
+}
+
+//----------------yellow------------------------
+void setColor1(uint32_t color) {
+  for (int i = 0; i < strip1.numPixels(); i++) {
+    strip1.setPixelColor(i, color);
+  }
+  strip1.show();
+    for (int i = 0; i < strip4.numPixels(); i++) {
+    strip4.setPixelColor(i, color);
+  }
+  strip4.show();
+}
+
+void setColor2(uint32_t color) {
+  for (int i = 0; i < strip2.numPixels(); i++) {
+    strip2.setPixelColor(i, color);
+  }
+  strip2.show();
+  
+  for (int i = 0; i < strip3.numPixels(); i++) {
+    strip3.setPixelColor(i, RED_COLOR);
+  }
+  strip3.show();
+}
+
+
+
+
+
+
+
+void clearLights() {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, 0); // Set color to 0 (off)
+    strip1.setPixelColor(i, 0); // Set color to 0 (off)
+    strip2.setPixelColor(i, 0); // Set color to 0 (off)
+     strip3.setPixelColor(i, 0); // Set color to 0 (off)
+     strip4.setPixelColor(i, 0); // Set color to 0 (off)
+     strip5.setPixelColor(i, 0); // Set color to 0 (off)
+  }
+  strip.show();
+  strip1.show();
+  strip2.show();
+  strip3.show();
+  strip4.show();
+  strip5.show();
+}
+
